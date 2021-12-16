@@ -7,7 +7,7 @@ PostgreSQL 12.
 
 # Documentation
 A handbook is available [in the `doc`
-directory](https://github.com/galdor/erl-pg/blob/master/doc/handbook.md).
+directory](https://github.com/exograd/erl-pg/blob/master/doc/handbook.md).
 
 # Contact
 If you find a bug or have any question, feel free to open a GitHub issue.
