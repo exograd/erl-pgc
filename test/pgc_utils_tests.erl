@@ -16,6 +16,13 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+quote_string_test_() ->
+  [?_assertEqual(<<"''">>, pgc_utils:quote_string("")),
+   ?_assertEqual(<<"'foo'">>, pgc_utils:quote_string("foo")),
+   ?_assertEqual(<<"'foo bar'">>, pgc_utils:quote_string("foo bar")),
+   ?_assertEqual(<<"'foo ''bar'''">>, pgc_utils:quote_string("foo 'bar'")),
+   ?_assertEqual(<<"''''''">>, pgc_utils:quote_string("''"))].
+
 quote_identifier_test_() ->
   [?_assertEqual(<<"foo">>, pgc_utils:quote_identifier(<<"foo">>)),
    ?_assertEqual(<<"foo">>, pgc_utils:quote_identifier("foo")),

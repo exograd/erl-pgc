@@ -16,7 +16,7 @@
 
 -export([timestamp/1, timestamp_to_erlang_datetime/1,
          time/1, time_to_erlang_time/1,
-         quote_identifier/1]).
+         quote_string/1, quote_identifier/1]).
 
 -spec timestamp(calendar:datetime()) -> pgc:timestamp().
 timestamp({Date, Time}) ->
@@ -33,6 +33,20 @@ time({H, M, S}) ->
 -spec time_to_erlang_time(pgc:time()) -> calendar:time().
 time_to_erlang_time({H, M, S, _}) ->
   {H, M, S}.
+
+-spec quote_string(unicode:chardata()) -> binary().
+quote_string(String) when is_binary(String) ->
+  quote_string(String, <<>>);
+quote_string(String) ->
+  quote_string(unicode:characters_to_binary(String)).
+
+-spec quote_string(binary(), binary()) -> binary().
+quote_string(<<>>, Acc) ->
+  <<$', Acc/binary, $'>>;
+quote_string(<<$', Rest/binary>>, Acc) ->
+  quote_string(Rest, <<Acc/binary, $', $'>>);
+quote_string(<<C, Rest/binary>>, Acc) ->
+  quote_string(Rest, <<Acc/binary, C>>).
 
 -spec quote_identifier(unicode:chardata()) -> binary().
 quote_identifier(Id) when is_binary(Id) ->
