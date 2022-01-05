@@ -14,7 +14,7 @@
 
 -module(pgc_model).
 
--export([model/1, model_keys/1,
+-export([model/1, model_keys/1, model_has_key/2,
          encode/2, encode/3,
          decode/2, decode/3,
          decode_row/2, decode_row/3,
@@ -74,6 +74,10 @@ model_keys(Ref, all) ->
   maps:keys(model(Ref));
 model_keys(_Ref, Keys) ->
   Keys.
+
+-spec model_has_key(model_ref(), model_key()) -> boolean().
+model_has_key(Ref, Key) ->
+  maps:is_key(Key, model(Ref)).
 
 -spec encode(entity(), model_ref()) -> [encoded_value()].
 encode(Entity, ModelRef) ->
