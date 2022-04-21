@@ -25,7 +25,7 @@
 -export_type([pool_id/0, client_ref/0,
               error/0, notice/0,
               error_reason/0, client_error_reason/0,
-              query_options/0, query_result/0, exec_result/0,
+              query/0, query_options/0, query_result/0, exec_result/0,
               column_name/0, row/0,
               oid/0, float_value/0,
               point/0, line_segment/0, path/0, box/0, polygon/0, line/0,
@@ -47,6 +47,8 @@
 
 -type client_error_reason() :: {connect, term()}
                              | {unexpected_msg, pgc_proto:msg()}.
+
+-type query() :: unicode:chardata().
 
 -type query_options() :: #{column_names_as_atoms => boolean(),
                            rows_as_hashes => boolean()}.
@@ -125,35 +127,35 @@ with_client(PoolId, Fun) ->
 with_transaction(PoolId, Fun) ->
   pgc_pool:with_transaction(pgc_pool:process_name(PoolId), Fun).
 
--spec simple_exec(pgc:client_ref(), Query :: unicode:chardata()) ->
+-spec simple_exec(pgc:client_ref(), query()) ->
         exec_result().
 simple_exec(Ref, Query)  ->
   pgc_client:simple_exec(Ref, Query).
 
--spec exec(pgc:client_ref(), Query :: unicode:chardata()) -> exec_result().
+-spec exec(pgc:client_ref(), query()) -> exec_result().
 exec(Ref, Query)  ->
   pgc_client:exec(Ref, Query, [], #{}).
 
--spec exec(pgc:client_ref(), Query :: unicode:chardata(), Params :: [term()]) ->
+-spec exec(pgc:client_ref(), query(), Params :: [term()]) ->
         exec_result().
 exec(Ref, Query, Params) ->
   pgc_client:exec(Ref, Query, Params, #{}).
 
--spec exec(pgc:client_ref(), Query :: unicode:chardata(), Params :: [term()],
+-spec exec(pgc:client_ref(), query(), Params :: [term()],
            query_options()) -> exec_result().
 exec(Ref, Query, Params, Options) ->
   pgc_client:exec(Ref, Query, Params, Options).
 
--spec query(pgc:client_ref(), Query :: unicode:chardata()) -> query_result().
+-spec query(pgc:client_ref(), query()) -> query_result().
 query(Ref, Query) ->
   pgc_client:query(Ref, Query, [], #{}).
 
--spec query(pgc:client_ref(), Query :: unicode:chardata(), Params :: [term()]) ->
+-spec query(pgc:client_ref(), query(), Params :: [term()]) ->
         query_result().
 query(Ref, Query, Params) ->
   pgc_client:query(Ref, Query, Params, #{}).
 
--spec query(pgc:client_ref(), Query :: unicode:chardata(), Params :: [term()],
+-spec query(pgc:client_ref(), query(), Params :: [term()],
             query_options()) -> query_result().
 query(Ref, Query, Params, Options) ->
   pgc_client:query(Ref, Query, Params, Options).

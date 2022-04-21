@@ -159,7 +159,7 @@ encode_parse_msg(PreparedStmt, Query, TypeOids) ->
 encode_password_msg(Password) ->
   encode_msg($p, encode_string(Password)).
 
--spec encode_query_msg(Query :: unicode:chardata()) -> iodata().
+-spec encode_query_msg(pgc:query()) -> iodata().
 encode_query_msg(Query) ->
   encode_msg($Q, encode_string(Query)).
 

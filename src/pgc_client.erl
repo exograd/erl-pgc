@@ -73,21 +73,21 @@ start_link(Name, Options) ->
 stop(Ref) ->
   gen_server:stop(Ref).
 
--spec simple_exec(ref(), Query :: unicode:chardata()) -> pgc:exec_result().
+-spec simple_exec(ref(), pgc:query()) -> pgc:exec_result().
 simple_exec(Ref, Query)  ->
   Msg = {simple_query, Query},
   gen_server:call(Ref, Msg, infinity).
 
--spec exec(ref(), Query :: unicode:chardata()) -> pgc:exec_result().
+-spec exec(ref(), pgc:query()) -> pgc:exec_result().
 exec(Ref, Query)  ->
   exec(Ref, Query, [], #{}).
 
--spec exec(ref(), Query :: unicode:chardata(), Params :: [term()]) ->
+-spec exec(ref(), pgc:query(), Params :: [term()]) ->
         pgc:exec_result().
 exec(Ref, Query, Params) ->
   exec(Ref, Query, Params, #{}).
 
--spec exec(ref(), Query :: unicode:chardata(), Params :: [term()],
+-spec exec(ref(), pgc:query(), Params :: [term()],
            pgc:query_options()) -> pgc:exec_result().
 exec(Ref, Query, Params, Options) ->
   Msg = {extended_query, Query, Params, Options},
@@ -98,16 +98,16 @@ exec(Ref, Query, Params, Options) ->
       {error, Reason}
   end.
 
--spec query(ref(), Query :: unicode:chardata()) -> pgc:query_result().
+-spec query(ref(), pgc:query()) -> pgc:query_result().
 query(Ref, Query) ->
   query(Ref, Query, [], #{}).
 
--spec query(ref(), Query :: unicode:chardata(), Params :: [term()]) ->
+-spec query(ref(), pgc:query(), Params :: [term()]) ->
         pgc:query_result().
 query(Ref, Query, Params) ->
   query(Ref, Query, Params, #{}).
 
--spec query(ref(), Query :: unicode:chardata(), Params :: [term()],
+-spec query(ref(), pgc:query(), Params :: [term()],
             pgc:query_options()) -> pgc:query_result().
 query(Ref, Query, Params, Options) ->
   gen_server:call(Ref, {extended_query, Query, Params, Options}, infinity).

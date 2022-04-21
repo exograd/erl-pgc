@@ -569,20 +569,20 @@ domain_test_() ->
                                 [{{array, int4}, [1, 2, 3]}]))]
    end}.
 
--spec query_row(pgc_client:ref(), unicode:chardata()) -> [term()].
+-spec query_row(pgc_client:ref(), pgc:query()) -> [term()].
 query_row(Client, Query) ->
   query_row(Client, Query, []).
 
--spec query_row(pgc_client:ref(), unicode:chardata(), [term()]) -> [term()].
+-spec query_row(pgc_client:ref(), pgc:query(), [term()]) -> [term()].
 query_row(Client, Query, Params) ->
   [Row] = query_rows(Client, Query, Params),
   Row.
 
-%% -spec query_rows(pgc_client:ref(), unicode:chardata()) -> [[term()]].
+%% -spec query_rows(pgc_client:ref(), pgc:query()) -> [[term()]].
 %% query_rows(Client, Query) ->
 %%   query_rows(Client, Query, []).
 
--spec query_rows(pgc_client:ref(), unicode:chardata(), [term()]) -> [[term()]].
+-spec query_rows(pgc_client:ref(), pgc:query(), [term()]) -> [[term()]].
 query_rows(Client, Query, Params) ->
   {ok, _, Rows, _} = pgc:query(Client, Query, Params),
   Rows.
