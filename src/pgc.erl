@@ -17,7 +17,7 @@
 -export([start_pool/2, stop_pool_clients/1,
          pool_stats/1,
          acquire/1, release/2,
-         with_client/2, with_transaction/2,
+         with_client/2, with_transaction/2, with_transaction/3,
          simple_exec/2, exec/2, exec/3, exec/4,
          query/2, query/3, query/4,
          register_model/2, unregister_model/1]).
