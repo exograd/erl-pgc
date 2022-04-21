@@ -67,7 +67,8 @@
                      | {error, error_reason()}.
 
 -type  transaction_options() ::
-         #{begin_args => unicode:chardata()}.
+         #{begin_args => unicode:chardata(),
+           always_commit => boolean()}.
 
 -type column_name() :: binary() | atom().
 

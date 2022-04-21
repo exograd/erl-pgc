@@ -126,7 +126,12 @@ with_transaction(PoolRef, Fun, Options) ->
                    SendQuery(Client, <<"COMMIT">>, commit_failure),
                    {ok, Result};
                  {error, Reason} ->
-                   SendQuery(Client, <<"ROLLBACK">>, rollback_failure),
+                   case maps:get(always_commit, Options, false) of
+                     true ->
+                       SendQuery(Client, <<"COMMIT">>, commit_failure);
+                     false ->
+                       SendQuery(Client, <<"ROLLBACK">>, rollback_failure)
+                   end,
                    {error, Reason}
                end
              catch
