@@ -104,7 +104,7 @@
       | fun((trace_msg()) -> ok).
 
 -type trace_msg() ::
-        {sending_query, pgc:query(), [term()], pgc:query_options()}
+        {sending_query, query(), [term()], query_options()}
       | query_sent
       | {message_received, pgc_proto:msg()}
       | {query_success, pgc_proto:query_response()}
