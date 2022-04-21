@@ -444,8 +444,7 @@ recv_extended_query_response(State = #{options := Options}, Response) ->
     {error_response, Error} ->
       log_backend_error(Error),
       Response2 = maps:put(error, Error, Response),
-      recv_simple_query_response(State, Response2),
-      {error, Error};
+      recv_extended_query_response(State, QueryOptions, Response2);
     {notice_response, Notice} ->
       log_backend_notice(Notice, Options),
       recv_extended_query_response(State, Response);
