@@ -26,6 +26,7 @@
               error/0, notice/0,
               error_reason/0, client_error_reason/0,
               query/0, query_options/0, query_result/0, exec_result/0,
+              transaction_options/0,
               column_name/0, row/0,
               oid/0, float_value/0,
               point/0, line_segment/0, path/0, box/0, polygon/0, line/0,
@@ -64,6 +65,9 @@
 -type exec_result() :: {ok,
                         NbAffectedRows :: non_neg_integer()}
                      | {error, error_reason()}.
+
+-type  transaction_options() ::
+         #{begin_args => unicode:chardata()}.
 
 -type column_name() :: binary() | atom().
 
@@ -138,7 +142,13 @@ with_client(PoolId, Fun) ->
 -spec with_transaction(pool_id(), pgc_pool:client_fun()) ->
         term() | {error, term()}.
 with_transaction(PoolId, Fun) ->
-  pgc_pool:with_transaction(pgc_pool:process_name(PoolId), Fun).
+  with_transaction(PoolId, Fun, #{}).
+
+-spec with_transaction(pool_id(), pgc_pool:client_fun(),
+                       transaction_options()) ->
+        term() | {error, term()}.
+with_transaction(PoolId, Fun, Options) ->
+  pgc_pool:with_transaction(pgc_pool:process_name(PoolId), Fun, Options).
 
 -spec simple_exec(pgc:client_ref(), query()) ->
         exec_result().

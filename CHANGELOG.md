@@ -3,8 +3,12 @@
 # Next Version
 ## Features
 - Add `pgc_model:column_fun/1` and `pgc_model:column_fun/2`.
-# Bugs
+- Introduce query tracing.
+## Bugs
 - Fix dialyzer type specification for `error_and_notice_fields/0`.
+## Misc
+- The last argument of `pgc:with_transaction/3` is now of type
+  `pgc:transaction_options/0`.
 
 # 1.4.2
 ## Features
@@ -20,7 +24,7 @@
   particularly useful when an application creates new database types and wants
   to ensure all connection are re-created so that type sets get reloaded.
 - Add support for the `REGCONFIG` type.
-# Bugs
+## Bugs
 - Fix rollback when a transaction function returns an error tuple.
 - Fix handling of unknown `gen_server` calls.
 - Delete the model registry ETS table during shutdown.

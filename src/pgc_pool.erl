@@ -96,11 +96,11 @@ with_client(PoolRef, Fun) ->
 
 -spec with_transaction(ref(), client_fun()) -> term() | {error, term()}.
 with_transaction(PoolRef, Fun) ->
-  with_transaction(PoolRef, Fun, <<"">>).
+  with_transaction(PoolRef, Fun, #{}).
 
--spec with_transaction(ref(), client_fun(), BeginOpts :: iodata()) ->
+-spec with_transaction(ref(), client_fun(), pgc:transaction_options()) ->
         term() | {error, term()}.
-with_transaction(PoolRef, Fun, BeginOpts) ->
+with_transaction(PoolRef, Fun, Options) ->
   SendQuery = fun (Client, Query, ErrType) ->
                   case pgc:simple_exec(Client, Query) of
                     {ok, _} ->
@@ -115,7 +115,8 @@ with_transaction(PoolRef, Fun, BeginOpts) ->
                   end
               end,
   Fun2 = fun (Client) ->
-             SendQuery(Client, [<<"BEGIN ">>, BeginOpts], begin_failure),
+             BeginArgs = maps:get(begin_args, Options, []),
+             SendQuery(Client, [<<"BEGIN ">>, BeginArgs], begin_failure),
              try
                case Fun(Client) of
                  ok ->
