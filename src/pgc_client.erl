@@ -369,7 +369,7 @@ load_domain_types(State = #{types := Types}) ->
       {error, Error}
   end.
 
--spec send_simple_query(Query :: iodata(), state()) -> pgc:exec_result().
+-spec send_simple_query(pgc:query(), state()) -> pgc:exec_result().
 send_simple_query(Query, State) ->
   send(pgc_proto:encode_query_msg(Query), State),
   case recv_simple_query_response(State, pgc_proto:query_response()) of
@@ -382,7 +382,8 @@ send_simple_query(Query, State) ->
 -spec recv_simple_query_response(state(), pgc_proto:query_response()) ->
         {ok, Response :: map()} | {error, term()}.
 recv_simple_query_response(State = #{options := Options}, Response) ->
-  case recv_msg(State) of
+  Msg = recv_msg(State),
+  case Msg of
     {error_response, Error} ->
       log_backend_error(Error),
       Response2 = maps:put(error, Error, Response),
@@ -419,10 +420,11 @@ recv_simple_query_response(State = #{options := Options}, Response) ->
       {error, {unexpected_msg, Msg}}
   end.
 
--spec send_extended_query(Query :: iodata(), Params :: [term()],
+-spec send_extended_query(pgc:query(), Params :: [term()],
                           pgc:query_options(), state()) ->
         pgc:query_result().
 send_extended_query(Query, Params, QueryOptions, State = #{types := Types}) ->
+  maybe_trace_msg({sending_query, Query, Params, QueryOptions}, QueryOptions),
   {EncodedParams, ParamTypeOids} = pgc_types:encode_values(Params, Types),
   send([pgc_proto:encode_parse_msg(<<>>, Query, ParamTypeOids),
         pgc_proto:encode_bind_msg(<<>>, <<>>, EncodedParams),
@@ -430,44 +432,54 @@ send_extended_query(Query, Params, QueryOptions, State = #{types := Types}) ->
         pgc_proto:encode_execute_msg(<<>>, 0),
         pgc_proto:encode_sync_msg()],
        State),
-  case recv_extended_query_response(State, pgc_proto:query_response()) of
+  maybe_trace_msg(query_sent, QueryOptions),
+  case
+    recv_extended_query_response(State, QueryOptions,
+                                 pgc_proto:query_response())
+  of
     {ok, Response} ->
+      maybe_trace_msg({query_success, Response}, QueryOptions),
       pgc_proto:query_response_to_query_result(Response, Types, QueryOptions);
     {error, Reason} ->
+      maybe_trace_msg({query_failure, Reason}, QueryOptions),
       {error, Reason}
   end.
 
--spec recv_extended_query_response(state(), pgc_proto:query_response()) ->
+-spec recv_extended_query_response(state(), pgc:query_options(),
+                                   pgc_proto:query_response()) ->
         {ok, Response :: map()} | {error, term()}.
-recv_extended_query_response(State = #{options := Options}, Response) ->
-  case recv_msg(State) of
+recv_extended_query_response(State = #{options := Options}, QueryOptions,
+                             Response) ->
+  Msg = recv_msg(State),
+  maybe_trace_msg({message_received, Msg}, QueryOptions),
+  case Msg of
     {error_response, Error} ->
       log_backend_error(Error),
       Response2 = maps:put(error, Error, Response),
       recv_extended_query_response(State, QueryOptions, Response2);
     {notice_response, Notice} ->
       log_backend_notice(Notice, Options),
-      recv_extended_query_response(State, Response);
+      recv_extended_query_response(State, QueryOptions, Response);
     {parameter_status, _, _} ->
-      recv_extended_query_response(State, Response);
+      recv_extended_query_response(State, QueryOptions, Response);
     empty_query_response ->
-      recv_extended_query_response(State, Response);
+      recv_extended_query_response(State, QueryOptions, Response);
     parse_complete ->
-      recv_extended_query_response(State, Response);
+      recv_extended_query_response(State, QueryOptions, Response);
     bind_complete ->
-      recv_extended_query_response(State, Response);
+      recv_extended_query_response(State, QueryOptions, Response);
     {row_description, Columns} ->
       Response2 = maps:put(columns, Columns, Response),
-      recv_extended_query_response(State, Response2);
+      recv_extended_query_response(State, QueryOptions, Response2);
     no_data ->
       Response2 = Response#{columns => [], rows => []},
-      recv_extended_query_response(State, Response2);
+      recv_extended_query_response(State, QueryOptions, Response2);
     {data_row, Row} ->
       Response2 = pgc_proto:add_query_response_row(Row, Response),
-      recv_extended_query_response(State, Response2);
+      recv_extended_query_response(State, QueryOptions, Response2);
     {command_complete, Tag} ->
       Response2 = maps:put(command_tag, Tag, Response),
-      recv_extended_query_response(State, Response2);
+      recv_extended_query_response(State, QueryOptions, Response2);
     {ready_for_query, TransactionStatus} ->
       Response2 = maps:put(transaction_status, TransactionStatus, Response),
       case maps:find(error, Response) of
@@ -540,4 +552,12 @@ log_backend_notice(Notice, Options) ->
 log_backend_error(Error) ->
   #{code := Code, message := Message} = Error,
   ?LOG_ERROR("backend error (code ~s): ~s", [Code, Message]),
+  ok.
+
+-spec maybe_trace_msg(pgc:trace_msg(), pgc:query_options()) -> ok.
+maybe_trace_msg(Msg, #{trace := {device, Device}}) ->
+  io:format(Device, "pgc: ~tp~n", [Msg]);
+maybe_trace_msg(Msg, #{trace := Trace}) when is_function(Trace, 1) ->
+  Trace(Msg);
+maybe_trace_msg(_Msg, _QueryOptions) ->
   ok.

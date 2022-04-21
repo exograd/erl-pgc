@@ -33,7 +33,8 @@
               inet_address/0, mac_address/0,
               date/0, time/0, time_with_timezone/0, timestamp/0,
               interval/0,
-              uuid/0]).
+              uuid/0,
+              trace_spec/0, trace_msg/0]).
 
 -type pool_id() :: atom().
 -type client_ref() :: pgc_client:ref().
@@ -51,7 +52,8 @@
 -type query() :: unicode:chardata().
 
 -type query_options() :: #{column_names_as_atoms => boolean(),
-                           rows_as_hashes => boolean()}.
+                           rows_as_hashes => boolean(),
+                           trace => trace_spec()}.
 
 -type query_result() :: {ok,
                          [column_name()],
@@ -96,6 +98,17 @@
                      Microseconds :: integer()}.
 
 -type uuid() :: <<_:128>>.
+
+-type trace_spec() ::
+        {device, io:device()}
+      | fun((trace_msg()) -> ok).
+
+-type trace_msg() ::
+        {sending_query, pgc:query(), [term()], pgc:query_options()}
+      | query_sent
+      | {message_received, pgc_proto:msg()}
+      | {query_success, pgc_proto:query_response()}
+      | {query_failure, term()}.
 
 -spec start_pool(pgc:pool_id(), pgc_pool:options()) ->
         supervisor:startchild_ret().
